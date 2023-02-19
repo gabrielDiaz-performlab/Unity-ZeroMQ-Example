@@ -3,6 +3,8 @@ using System.Threading;
 using NetMQ;
 using NetMQ.Sockets;
 using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
 
 public class NetMqPublisher
 {
@@ -17,6 +19,8 @@ public class NetMqPublisher
     private readonly Stopwatch _contactWatch;
 
     private const long ContactThreshold = 1000;
+
+    
 
     public bool Connected;
 
@@ -73,12 +77,15 @@ public class ServerObject : MonoBehaviour
         _netMqPublisher.Start();
     }
 
-    private void Update()
+    private void LateUpdate()
     {
-        var position = transform.position;
-        _response = $"{position.x} {position.y} {position.z}";
+        Time.timeScale = 0;
+        StartCoroutine(reply_at_end_of_frame());
         Connected = _netMqPublisher.Connected;
+        
     }
+
+    
 
     private string HandleMessage(string message)
     {
@@ -90,4 +97,42 @@ public class ServerObject : MonoBehaviour
     {
         _netMqPublisher.Stop();
     }
+
+    IEnumerator reply_at_end_of_frame()
+    {
+        
+        yield return new WaitForEndOfFrame();
+        var position = transform.position;
+        ScreenCapture.CaptureScreenshot("screen_grab.png");
+        //_response = $"{position.x} {position.y} {position.z}";
+
+        _response = $"{Time.frameCount}";
+        Time.timeScale = 1;
+
+
+
+        //byte[] byteArray = get_camera_view();
+        //Dictionary<string, byte[]> data_dict = new Dictionary<string, byte[]>();
+        //Dictionary<string, string> data_dict = new Dictionary<string, string>();
+        //yield on a new YieldInstruction that waits for 5 seconds.
+
+    }
+
+    
+
+    //private byte[] get_camera_view()
+    //{
+    //    Camera cam = gameObject.GetComponent<Camera>();
+    //    RenderTexture screenTexture = new RenderTexture(Screen.width, Screen.height, 16);
+    //    cam.targetTexture = screenTexture;
+    //    RenderTexture.active = screenTexture;
+    //    cam.Render();
+    //    Texture2D renderedTexture = new Texture2D(Screen.width, Screen.height);
+    //    renderedTexture.ReadPixels(new Rect(0, 0, Screen.width, Screen.height), 0, 0);
+    //    RenderTexture.active = null;
+    //    byte[] byteArray = renderedTexture.EncodeToPNG();
+    //    return byteArray;
+    //    //System.IO.File.WriteAllBytes(Application.dataPath + "/cameracapture.png", byteArray);
+
+    //}
 }
